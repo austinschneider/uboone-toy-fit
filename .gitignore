@@ -1,5 +1,6 @@
 # secrets
 resources/secret.dat
+resources/secret_goodies.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
