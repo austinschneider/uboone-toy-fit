@@ -75,7 +75,7 @@ def gauss_prefactor(cov):
     return -0.5*np.log((2*np.pi)**cov.shape[0]*np.linalg.det(cov))
 
 # The exponential term in the gaussian prior
-def gauss_exponenent(scale_factors, center, cov_inv):
+def gauss_exponenent(scale_factors, center, cov_inv, mc_error=None):
     alpha = np.array(scale_factors)
     beta = center
     diff = alpha - beta
@@ -97,7 +97,7 @@ def add_gaussian_component(the_store, param_def):
     the_store.add_prop(name + "_gauss_prefactor", [name + "_cov"], gauss_prefactor)
     the_store.add_prop(name + "_gauss_exponent", [parameter_name, name + "_center", name + "_cov_inv"], gauss_exponenent)
 
-def gaussian_component(the_store, component_name, central_value, cov=None, f_cov=None):
+def gaussian_component(the_store, component_name, central_value, cov=None, f_cov=None, mc_error=None, f_mc_error=None):
     if cov is None and f_cov is None:
         raise ValueError("Need one of: cov, f_cov")
     central_value = np.asarray(central_value)
@@ -115,10 +115,14 @@ def gaussian_component(the_store, component_name, central_value, cov=None, f_cov
             "prior": "gaussian",
             "cov": cov,
             }
+    if f_mc_error is not None:
+        param_def["relative_mc_error"] = f_mc_error
+    elif mc_error is not None:
+        param_def["mc_error"] = mc_error
     return param_def
 
 
-def unconstrained_component(component_name, n_bins):
+def unconstrained_component(component_name, n_bins, mc_error=None, f_mc_error=None):
     param_def = {
             "component_name": component_name,
             "parameter_name": name + "_scale_factors",
@@ -126,9 +130,13 @@ def unconstrained_component(component_name, n_bins):
             "shape": (n_bins,),
             "prior": "none",
             }
+    if f_mc_error is not None:
+        param_def["relative_mc_error"] = f_mc_error
+    elif mc_error is not None:
+        param_def["mc_error"] = mc_error
     return param_def
 
-def unconstrained_positive_component(component_name, n_bins):
+def unconstrained_positive_component(component_name, n_bins, mc_error=None, f_mc_error=None):
     param_def = {
             "component_name": component_name,
             "parameter_name": name + "_scale_factors",
@@ -136,9 +144,13 @@ def unconstrained_positive_component(component_name, n_bins):
             "shape": (n_bins,),
             "prior": "positive",
             }
+    if f_mc_error is not None:
+        param_def["relative_mc_error"] = f_mc_error
+    elif mc_error is not None:
+        param_def["mc_error"] = mc_error
     return param_def
 
-def normalization_component(component_name, central_value):
+def normalization_component(component_name, central_value, mc_error=None, f_mc_error=None):
     param_def = {
             "component_name": component_name,
             "parameter_name": name + "_normalization",
@@ -146,19 +158,16 @@ def normalization_component(component_name, central_value):
             "shape": tuple(),
             "prior": "positive",
             }
+    if f_mc_error is not None:
+        param_def["relative_mc_error"] = f_mc_error
+    elif mc_error is not None:
+        param_def["mc_error"] = mc_error
     return param_def
 
 exit(0)
 
 def setup_analysis(tag, include_nue=True, include_numu=True, include_lee=True, combine_sm=False):
     the_store = prop_store.store()
-    """
-    print(get_goodies("classic"))
-    print(get_goodies("bdt_09"))
-    print(get_goodies("bdt_095"))
-    print(get_goodies("bdt_09_avg"))
-    print(get_goodies("bdt_095_avg"))
-    """
     goodies = get_goodies(tag)
     nue_sm_expect, lee_expect, nue_mc_error, nue_f_cov, numu_expect, numu_f_cov = goodies
 
